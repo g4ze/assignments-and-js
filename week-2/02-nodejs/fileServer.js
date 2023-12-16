@@ -19,3 +19,38 @@ const app = express();
 
 
 module.exports = app;
+
+
+
+app.get('/files', (req, res) => { 
+    readfiles(res);
+});
+
+app.get('/file/:filename', (req, res) => {
+    const filename = req.params.filename;
+     {
+      fs.readFile('./files/' + filename, (err, data) => {
+        if(err){
+          return res.status(404).send("File not found");
+        
+        };
+        res.status(200).send(data);
+      })
+    }
+});
+
+function readfiles(res){
+    fs.readdir('./files', (err, files) => { 
+        if(err) throw err;
+        console.log(files);
+        res.status(200).send(files);
+
+    })
+}
+
+
+app.get('*', (req, res) => {
+  res.status(404).send('Route not found');
+}); 
+
+app.listen(3003, () => console.log('Server listening on port 3000!'));
