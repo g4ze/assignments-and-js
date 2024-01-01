@@ -1,7 +1,11 @@
 const express = require('express');
+
 const bodyParser = require('body-parser');
+
 const app = express();
+
 const adminRouter = require("./routes/admin")
+
 const userRouter = require("./routes/user");
 
 // Middleware for parsing request bodies
