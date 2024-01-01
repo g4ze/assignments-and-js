@@ -57,21 +57,37 @@ router.get('/courses', async (req, res) => {
 
 router.post('/courses/:courseId', userMiddleware, async (req, res) => {
     // Implement course purchase logic
-    
     const jwt=require('jsonwebtoken')
     const username=await jwt.decode(req.headers.authorization, jwtpass).username;
-    const course = await Course.findById(req.params.courseId);
+    try{const course = await Course.findOne({ _id: req.params.courseId });
+    
     const user=await User.findOne({username:username});
+    const alreadyBought = await user.courses.find(course => course._id.toString() === req.params.courseId);
+    if(alreadyBought){
+        res.status(200).json({
+            message: 'Course already purchased successfully',
+            user: user // Optionally, you can send the updated user data in the response
+        });
+}
+else{
     user.courses.push(course);
-    await user.save();
     res.status(200).json({
         message: 'Course purchased successfully',
         user: user // Optionally, you can send the updated user data in the response
     });
+    await user.save();
+}
+    }catch (e){
+        res.status(400).send("inavid id")
+    }
 });
 
-router.get('/purchasedCourses', userMiddleware, (req, res) => {
+router.get('/purchasedCourses', userMiddleware, async (req, res) => {
     // Implement fetching purchased courses logic
+    const jwt=require('jsonwebtoken')
+    const username=await jwt.decode(req.headers.authorization, jwtpass).username;
+    const user=await User.findOne({username:username});
+    res.status(200).json(user.courses);
 });
 
 module.exports = router
