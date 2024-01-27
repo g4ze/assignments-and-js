@@ -16,28 +16,7 @@
     Response: 200 OK with the todo item in JSON format if found, or 404 Not Found if not found.
     Example: GET http://localhost:3000/todos/123
     
-  3. POST /todos - Create a new todo item
-    Description: Creates a new todo item.
-    Request Body: JSON object representing the todo item.
-    Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
-    Example: POST http://localhost:3000/todos
-    Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
     
-  4. PUT /todos/:id - Update an existing todo item by ID
-    Description: Updates an existing todo item identified by its ID.
-    Request Body: JSON object representing the updated todo item.
-    Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
-    Example: PUT http://localhost:3000/todos/123
-    Request Body: { "title": "Buy groceries", "completed": true }
-    
-  5. DELETE /todos/:id - Delete a todo item by ID
-    Description: Deletes a todo item identified by its ID.
-    Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
-    Example: DELETE http://localhost:3000/todos/123
-
-    - For any other route not defined in the server return 404
-
-  Testing the server - run `npm run test-todoServer` command in terminal
  */
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -77,7 +56,106 @@ app.get('/todos/:id', (req, res) => {
 });
 
 
+// 3. POST /todos - Create a new todo item
+// Description: Creates a new todo item.
+// Request Body: JSON object representing the todo item.
+// Response: 201 Created with the ID of the created todo item in JSON format. eg: {id: 1}
+// Example: POST http://localhost:3000/todos
+// Request Body: { "title": "Buy groceries", "completed": false, description: "I should buy groceries" }
+app.post('/todos', (req, res)=>{
+  const todos= req.body;
+  fs.readFile('./todos.json', (err, data) => {
+    if (err) {
+      return res.status(404).send("File not found");
+    }
+    
+    data=JSON.parse(data);
+    let len=data.length;
+    let id= len+1;
+    data[len]=todos;
+    fs.writeFile('./todos.json', JSON.stringify(data), (err) => {
+      if (err) {
+        return res.status(404).send("File not found");
+
+      }
+      return res.status(201).send({id: data.length});
+    })
+  })
+});
+
+// 4. PUT /todos/:id - Update an existing todo item by ID
+//     Description: Updates an existing todo item identified by its ID.
+//     Request Body: JSON object representing the updated todo item.
+//     Response: 200 OK if the todo item was found and updated, or 404 Not Found if not found.
+//     Example: PUT http://localhost:3000/todos/123
+//     Request Body: { "title": "Buy groceries", "completed": true }
+
+app.put('/todos/:id', (req, res)=>{
+    const id= req.params.id;
+    const todos= req.body;
+  fs.readFile('./todos.json', (err, data) => {
+    if (err) {
+      return res.status(404).send("File not found");
+    }
+    
+    data=JSON.parse(data);
+    let len=data.length;
+    
+    for (i in data){
+      if(i==id){
+        data[i]=todos;
+      }
+    }
+    fs.writeFile('./todos.json', JSON.stringify(data), (err) => {
+      if (err) {
+        return res.status(404).send("File not found");
+
+      }
+      return res.status(200).send({id: data.length});
+    })
+  })
+    
+});
+
+  
+    
+// 5. DELETE /todos/:id - Delete a todo item by ID
+// Description: Deletes a todo item identified by its ID.
+// Response: 200 OK if the todo item was found and deleted, or 404 Not Found if not found.
+// Example: DELETE http://localhost:3000/todos/123
+
+// - For any other route not defined in the server return 404
+
+// Testing the server - run `npm run test-todoServer` command in terminal
 
 
+app.delete('/todos/:id', (req, res)=>{
+  const id= req.params.id;
+  const todos= req.body;
+  fs.readFile('./todos.json', (err, data) => {
+    if (err) {
+      return res.status(404).send("File not found");
+    }
+    
+    data=JSON.parse(data);
+    let len=data.length;
+    
+    for (i in data){
+      if(i==id){
+        delete data[i];
+      }
+    }
+    fs.writeFile('./todos.json', JSON.stringify(data), (err) => {
+      if (err) {
+        return res.status(404).send("File not found");
+
+      }
+      return res.status(200).send({"ok":"ok"});
+    })
+  });
+});
+app.get('*', (req, res) => {
+  res.status(400).send('Route not found');
+});
 
 app.listen(3000, () => console.log('Server listening on port 3000!'));
